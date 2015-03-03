@@ -13,14 +13,27 @@ ltm = LTM(hostname='10.240.0.248', username='proxyuser', password='proxypass', p
 
 def listPools():
     poollist = ltm.get_pools()
-    table = PrettyTable(["Pool Name", "Description", "Load Balancing Mode", "Partition"])
+    table = PrettyTable(["Pool Name", "State", "Description", "Load Balancing Mode", "Monitor", "Status", "Partition"])
     table.align["Pool Name"] = "l" # Left align pool name
     table.align["Description"] = "l" # Left align description
 
-    for pool in poollist['items']:
-        if not pool.has_key('description'):
-            pool['description'] = "None"
-        table.add_row([pool['name'],pool['description'],pool['loadBalancingMode'],pool['partition']])
+
+    # Test to see if there are any pools. If so, list them.
+    if poollist.has_key('items'):
+        for pool in poollist['items']:
+            # Check pool stats
+            poolstats = ltm.get_pool_stats(pool['name'])
+            pool_state = poolstats['entries']['status.enabledState']['description']
+            pool_status = poolstats['entries']['status.availabilityState']['description']
+
+            # Check for the existence of particular keys
+            if not pool.has_key('description'):
+                pool['description'] = "None"
+            if not pool.has_key('monitor'):
+                pool['monitor'] = "None"
+            table.add_row([pool['name'],pool_state,pool['description'],pool['loadBalancingMode'],pool['monitor'],pool_status,pool['partition']])
+    else:
+        table.add_row(["There are no pools.","","","","","",""])
 
     print table
 #        print pool['name']
@@ -74,6 +87,29 @@ def createVirtualServer(network_id):
     else:
         print status_code
 
+def createPool(name, lb_method, monitor):
+    status_code, json = ltm.create_pool(name, lb_method, monitor)
+
+    if (status_code == 200):
+        print "\nCreated Pool: " + name
+        table = PrettyTable(["Field", "Value"])
+        table.align["Field"] = "r"
+        table.align["Value"] = "l"
+        table.add_row(["Name:",name])
+        table.add_row(["Load Balancing Method:",lb_method])
+        table.add_row(["Monitor",monitor])
+        print table
+    else:
+        print status_code
+
+def deletePool(name):
+    status_code = ltm.delete_pool(name)
+
+    if (status_code == 200):
+        print "Deleted Pool: " + name
+    else:
+        print status_code
+
 def main():
     if len(sys.argv) > 1:
         if (sys.argv[1] == "pool-list"):
@@ -85,6 +121,19 @@ def main():
         if (sys.argv[1] == "virtual-server-create"):
             if (sys.argv[2] == "--auto"):
                 createVirtualServer(sys.argv[3])
+        if (sys.argv[1] == "pool-create"):
+            if len(sys.argv) < 5:
+                print "Syntax: pool-create <pool_name> <lb_method> <monitor>"
+            else:
+                createPool(sys.argv[2], sys.argv[3], sys.argv[4])
+        if (sys.argv[1] == "pool-delete"):
+            if len(sys.argv) < 3:
+                print "Syntax: pool-delete <pool_name>"
+            else:
+                deletePool(sys.argv[2])
+    else:
+        print "No command specified"
+
 
 if __name__ == "__main__":
         main()
