@@ -17,8 +17,12 @@ class LTM:
         resp = self.bigip.get('%s/ltm/pool' % self.url_base)
         return json.loads(resp.text)
 
+    def get_pool_stats(self, pool):
+        resp = self.bigip.get('%s/ltm/pool/~%s~%s/stats' % (self.url_base, self.partition, pool))
+        return json.loads(resp.text)
+
     def get_pool_members(self, pool):
-        resp = self.bigip.get('%s/ltm/pool/%s/members' % (self.url_base, pool))
+        resp = self.bigip.get('%s/ltm/pool/~%s~%s/members' % (self.url_base, self.partition, pool))
         return json.loads(resp.text)
 
     def get_virtuals(self):
@@ -32,7 +36,7 @@ class LTM:
         payload['kind'] = 'tm:ltm:virtual:virtualstate'
         payload['partition'] = self.partition
         payload['name'] = name
-        payload['description'] = 'Sample Virtual Server'
+        payload['description'] = 'Created by F5 Proxy'
         payload['destination'] = '%s:%s' % (address, port)
         payload['mask'] = '255.255.255.255'
         payload['ipProtocol'] = 'tcp'
@@ -44,6 +48,24 @@ class LTM:
 
         resp = self.bigip.post('%s/ltm/virtual' % self.url_base, data=json.dumps(payload))
         return resp.status_code, json.loads(resp.text)
+
+    def create_pool(self, name, lb_method, monitor):
+        payload = {}
+
+        # Define pool properties
+        payload['kind'] = 'tm:ltm:pool:poolstate'
+        payload['partition'] = self.partition
+        payload['name'] = name
+        payload['description'] = 'Created by F5 Proxy'
+        payload['loadBalancingMode'] = lb_method
+        payload['monitor'] = monitor
+
+        resp = self.bigip.post('%s/ltm/pool' % self.url_base, data=json.dumps(payload))
+        return resp.status_code, json.loads(resp.text)
+
+    def delete_pool(self, name):
+        resp = self.bigip.delete('%s/ltm/pool/~%s~%s'  % (self.url_base,self.partition,name))
+        return resp.status_code
 
     def get_nodes(self):
         resp = self.bigip.get('%s/ltm/node' % self.url_base)
