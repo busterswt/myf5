@@ -19,7 +19,7 @@ class LTM:
 
     def get_pool_stats(self, pool):
         resp = self.bigip.get('%s/ltm/pool/~%s~%s/stats' % (self.url_base, self.partition, pool))
-        return json.loads(resp.text)
+        return resp.status_code, json.loads(resp.text)
 
     def get_pool_members(self, pool):
         resp = self.bigip.get('%s/ltm/pool/~%s~%s/members' % (self.url_base, self.partition, pool))
@@ -61,6 +61,37 @@ class LTM:
         payload['monitor'] = monitor
 
         resp = self.bigip.post('%s/ltm/pool' % self.url_base, data=json.dumps(payload))
+        return resp.status_code, json.loads(resp.text)
+
+    def add_pool_member(self, pool_name, member_ip, member_port):
+        payload = {}
+
+        # Define pool member properties
+        payload['partition'] = self.partition
+        payload['name'] = member_ip+':'+member_port
+        payload['description'] = 'Created by F5 Proxy'
+        payload['address'] = member_ip
+
+        resp = self.bigip.post('%s/ltm/pool/~%s~%s/members/' % (self.url_base,self.partition,pool_name), data=json.dumps(payload))
+        return resp.status_code, json.loads(resp.text)
+
+    def del_pool_member(self, pool_name, member_ip, member_port):
+        resp = self.bigip.delete('%s/ltm/pool/~%s~%s/members/%s:%s' % (self.url_base,self.partition,pool_name,member_ip,member_port))
+
+        # Test to see if the operation was successful. BIGIP does not return JSON on 200 OK
+        if not resp.text:
+            return resp.status_code, False
+        else:
+            return resp.status_code, json.loads(resp.text)
+
+    def attach_pool_to_virtual(self, vs_name, pool_name):
+        payload = {}
+
+        payload['kind'] = 'tm:ltm:virtual:virtualstate'
+        payload['pool'] = pool_name
+        payload['partition'] = self.partition
+
+        resp = self.bigip.put('%s/ltm/virtual/~%s~%s/' % (self.url_base,self.partition,vs_name), data=json.dumps(payload))
         return resp.status_code, json.loads(resp.text)
 
     def delete_pool(self, name):
