@@ -2,6 +2,7 @@
 
 import requests, json, sys
 from library.neutron import create_port
+from library.keystone import get_token
 from prettytable import PrettyTable
 from pprint import pprint
 from library.ltm import LTM
@@ -61,14 +62,14 @@ def listVirtualServers():
 
     print table
 
-def createVirtualServer(network_id):
+def createVirtualServer(os_token, network_id):
     vip_addr = create_port(network_id)
 
     vs_name = "PROXY_VS_" + vip_addr
     vs_address = vip_addr
     vs_port = "80"
 
-    status_code, json = ltm.create_virtual(vs_name,vs_address,vs_port)
+    status_code, json = ltm.create_virtual(os_token, vs_name,vs_address,vs_port)
 
     if (status_code == 200):
         print "\nCreated Virtual Server:  " + vs_name
@@ -161,6 +162,9 @@ def showPoolStats(name):
         print "Error: %s. %s" % (status_code, poolstats['message'])
 
 def main():
+    os_token = get_token()
+    print os_token
+
     if len(sys.argv) > 1:
         if (sys.argv[1] == "pool-list"):
             listPools()
@@ -170,7 +174,7 @@ def main():
             listPoolMembers(sys.argv[2])
         if (sys.argv[1] == "virtual-server-create"):
             if (sys.argv[2] == "--auto"):
-                createVirtualServer(sys.argv[3])
+                createVirtualServer(os_token, sys.argv[3])
         if (sys.argv[1] == "pool-create"):
             if len(sys.argv) < 5:
                 print "Syntax: pool-create <pool_name> <lb_method> <monitor>"
