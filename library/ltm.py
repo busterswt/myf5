@@ -29,7 +29,9 @@ class LTM:
         resp = self.bigip.get('%s/ltm/virtual' % self.url_base)
         return json.loads(resp.text)
 
-    def create_virtual(self, name, address, port):
+    def create_virtual(self, os_token, name, address, port):
+        headers = {'X-Auth-Token': os_token}
+
         payload = {}
 
         # Define virtal server properties
@@ -46,7 +48,7 @@ class LTM:
             { 'kind' : 'ltm:virtual:profile', 'name' : 'tcp' }
         ]
 
-        resp = self.bigip.post('%s/ltm/virtual' % self.url_base, data=json.dumps(payload))
+        resp = self.bigip.post('%s/ltm/virtual' % self.url_base, data=json.dumps(payload), headers=headers)
         return resp.status_code, json.loads(resp.text)
 
     def create_pool(self, name, lb_method, monitor):
