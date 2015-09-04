@@ -9,7 +9,7 @@ from library.ltm import LTM
 
 requests.packages.urllib3.disable_warnings()
 
-ltm = LTM(hostname='10.240.0.248', username='proxyuser', password='proxypass', partition='test')
+ltm = LTM(hostname='192.0.2.13', username='user', password='pass', partition='test')
 
 
 def listPools():
@@ -163,7 +163,7 @@ def showPoolStats(name):
 
 def main():
     os_token = get_token()
-    print os_token
+    #print os_token
 
     if len(sys.argv) > 1:
         if (sys.argv[1] == "pool-list"):

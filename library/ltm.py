@@ -14,7 +14,7 @@ class LTM:
         self.partition = partition
 
     def get_pools(self):
-        resp = self.bigip.get('%s/ltm/pool' % self.url_base)
+        resp = self.bigip.get('%s/ltm/pool?$filter=partition eq %s' % (self.url_base, self.partition))
         return json.loads(resp.text)
 
     def get_pool_stats(self, pool):
