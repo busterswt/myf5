@@ -26,7 +26,7 @@ class LTM:
         return json.loads(resp.text)
 
     def get_virtuals(self):
-        resp = self.bigip.get('%s/ltm/virtual' % self.url_base)
+        resp = self.bigip.get('%s/ltm/virtual?$filter=partition eq %s' % (self.url_base, self.partition))
         return json.loads(resp.text)
 
     def create_virtual(self, os_token, name, address, port):
@@ -101,23 +101,27 @@ class LTM:
         return resp.status_code
 
     def get_nodes(self):
-        resp = self.bigip.get('%s/ltm/node' % self.url_base)
+        resp = self.bigip.get('%s/ltm/node?$filter=partition eq %s' % (self.url_base, self.partition))
         return resp.json()['items']
 
     def disable_node(self, node):
         payload = { 'session': 'user-disabled' }
-        resp = self.bigip.put('%s/ltm/node/%s' % (self.url_base, node), data=json.dumps(payload))
+        resp = self.bigip.put('%s/ltm/node/~%s~%s' % (self.url_base, node), self.partition, data=json.dumps(payload))
         resp.raise_for_status()
         return resp.json()
 
     def enable_node(self, node):
         payload = { 'session': 'user-enabled' }
-        resp = self.bigip.put('%s/ltm/node/%s' % (self.url_base, node), data=json.dumps(payload))
+        resp = self.bigip.put('%s/ltm/node/~%s~%s' % (self.url_base, node), self.partition, data=json.dumps(payload))
         resp.raise_for_status()
         return resp.json()
 
     def sync_nodes(self, device_group):
-        payload = { 'command': 'run', 'utilCmdArgs': 'confg-sync to-group %s' % device_group }
-        resp = self.bigip.post('%s/cm', data=json.dumps(payload))
-        resp.raise_for_status()
-        return resp.json()
+        payload = { 'command': 'run', 'utilCmdArgs': 'config-sync to-group %s' % device_group }
+        resp = self.bigip.post('%s/cm' % self.url_base, data=json.dumps(payload))
+        return resp.status_code, json.loads(resp.text)
+
+    def get_device_stats(self):
+        resp = self.bigip.get('%s/cm/traffic-group/stats' % self.url_base)
+#        return resp.status_code, json.loads(resp.text)
+        return resp.status_code, resp.json()

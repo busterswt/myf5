@@ -163,11 +163,44 @@ def showPoolStats(name):
     else:
         print "Error: %s. %s" % (status_code, poolstats['message'])
 
+def syncGroup(device_group):
+    status_code, response = ltm.sync_nodes(device_group)
+    
+    if (status_code == 200):
+        print "F5 syncronization has been initiated."
+    else:
+        print "Error: %s. %s" % (status_code, response['message'])
+    
+def getDeviceStatus():
+    status_code, response = ltm.get_device_stats()
+
+    if (status_code == 200):
+        if response.has_key('entries'):
+            table = PrettyTable(["Device Name", "Failover State", "Next Active", "Traffic Group"])
+            table.align["Device Name"] = "l"
+
+            for device in response['entries'].values():
+                device_name = device['nestedStats']['entries']['deviceName']['description']
+                failover_state = device['nestedStats']['entries']['failoverState']['description']
+                next_active = device['nestedStats']['entries']['nextActive']['description']
+                traffic_group = device['nestedStats']['entries']['trafficGroup']['description']
+
+                table.add_row([device_name,failover_state,next_active,traffic_group])
+        print table
+
+    else:
+        print "Error: %s. %s" % (status_code, response['message'])
+
+
 def main():
     os_token = get_token()
     #print os_token
 
     if len(sys.argv) > 1:
+        if (sys.argv[1] == "device-status"):
+            getDeviceStatus()
+        if (sys.argv[1] == "sync"):
+            syncGroup("device-group-failover-b00bbb71f680")
         if (sys.argv[1] == "pool-list"):
             listPools()
         if (sys.argv[1] == "virtual-server-list"):
