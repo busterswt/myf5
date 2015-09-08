@@ -231,7 +231,7 @@ def main():
                 enablePoolMember(sys.argv[2],sys.argv[3])
         if (sys.argv[1] == "device-status"):
             getDeviceStatus()
-        if (sys.argv[1] == "sync"):
+        if (sys.argv[1] == "device-sync"):
             syncGroup("device-group-failover-b00bbb71f680")
         if (sys.argv[1] == "pool-list"):
             listPools()
@@ -288,7 +288,13 @@ def main():
         print "pool-member-list POOL_NAME"
         print "pool-member-add POOL_NAME IP_ADDRESS PORT"
         print "pool-member-remove POOL_NAME IP_ADDRESS PORT"
+        print "pool-member-disable POOL_NAME MEMBER [--force]"
+        print "pool-member-enable POOL_NAME MEMBER"
         print ""  
+        print "Utilities:"
+        print "device-sync SYNC_GROUP"
+        print "device-status"
+        print ""
 
 if __name__ == "__main__":
         main()
