@@ -116,6 +116,20 @@ class LTM:
         resp.raise_for_status()
         return resp.json()
 
+    def disable_member(self, pool, member, force_offline):
+        # Logic to see if member is forced offline
+        if force_offline:
+            payload = { 'state':'user-down','session': 'user-disabled' }
+        else:        
+            payload = { 'state':'user-up','session':'user-disabled' }
+        resp = self.bigip.put('%s/ltm/pool/~%s~%s/members/~%s~%s' % (self.url_base, self.partition, pool, self.partition, member), data=json.dumps(payload))
+        return resp.status_code, json.loads(resp.text)
+
+    def enable_member(self, pool, member):
+        payload = { 'state':'user-up','session':'user-enabled' }
+        resp = self.bigip.put('%s/ltm/pool/~%s~%s/members/~%s~%s' % (self.url_base, self.partition, pool, self.partition, member), data=json.dumps(payload))
+        return resp.status_code, json.loads(resp.text)
+
     def sync_nodes(self, device_group):
         payload = { 'command': 'run', 'utilCmdArgs': 'config-sync to-group %s' % device_group }
         resp = self.bigip.post('%s/cm' % self.url_base, data=json.dumps(payload))
@@ -123,5 +137,5 @@ class LTM:
 
     def get_device_stats(self):
         resp = self.bigip.get('%s/cm/traffic-group/stats' % self.url_base)
-#        return resp.status_code, json.loads(resp.text)
-        return resp.status_code, resp.json()
+        return resp.status_code, json.loads(resp.text)
+#        return resp.status_code, resp.json()

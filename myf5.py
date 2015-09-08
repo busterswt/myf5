@@ -11,7 +11,7 @@ from library.credentials import get_f5_credentials
 requests.packages.urllib3.disable_warnings()
 
 creds = get_f5_credentials()
-#ltm = LTM(hostname='192.168.1.13', username='user', password='pass', partition='test')
+#ltm = LTM(hostname='192.0.2.13', username='user', password='pass', partition='test')
 ltm = LTM(hostname=creds['f5_endpoint'], username=creds['f5_username'], password=creds['f5_password'], partition=creds['f5_partition'])
 
 def listPools():
@@ -191,12 +191,44 @@ def getDeviceStatus():
     else:
         print "Error: %s. %s" % (status_code, response['message'])
 
+def disablePoolMember(pool,member,force_offline=False):
+    status_code, response = ltm.disable_member(pool,member,force_offline)
+
+    if (status_code == 200):
+        if force_offline:
+            print "\rForced pool member %s in pool %s offline" % (member,pool)
+        else:
+            print "\rDisabled pool member %s in pool %s" % (member,pool)
+    else:
+        print "Error: %s. %s" % (status_code,response['message'])
+
+def enablePoolMember(pool,member,force_offline='false'):
+    status_code, response = ltm.enable_member(pool,member)
+
+    if (status_code == 200):
+        print "\rEnabled pool member %s in pool %s" % (member,pool)
+    else:
+        print "Error: %s. %s" % (status_code,response['message'])
 
 def main():
     os_token = get_token()
     #print os_token
 
     if len(sys.argv) > 1:
+        if (sys.argv[1] == "pool-member-disable"):
+            if len(sys.argv) < 4:
+                print "Syntax: pool-member-disable POOL_NAME MEMBER [--force]"
+            if len(sys.argv) == 4:
+                disablePoolMember(sys.argv[2],sys.argv[3])
+            else:                
+                if (sys.argv[4] == "--force"):
+                    disablePoolMember(sys.argv[2],sys.argv[3],True)
+
+        if (sys.argv[1] == "pool-member-enable"):
+            if len(sys.argv) < 4:
+                print "Syntax: pool-member-enable POOL_NAME MEMBER"
+            else:
+                enablePoolMember(sys.argv[2],sys.argv[3])
         if (sys.argv[1] == "device-status"):
             getDeviceStatus()
         if (sys.argv[1] == "sync"):
