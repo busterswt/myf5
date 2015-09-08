@@ -6,11 +6,13 @@ from library.keystone import get_token
 from prettytable import PrettyTable
 from pprint import pprint
 from library.ltm import LTM
+from library.credentials import get_f5_credentials
 
 requests.packages.urllib3.disable_warnings()
 
-ltm = LTM(hostname='192.0.2.13', username='user', password='pass', partition='test')
-
+creds = get_f5_credentials()
+#ltm = LTM(hostname='192.168.1.13', username='user', password='pass', partition='test')
+ltm = LTM(hostname=creds['f5_endpoint'], username=creds['f5_username'], password=creds['f5_password'], partition=creds['f5_partition'])
 
 def listPools():
     poollist = ltm.get_pools()
@@ -200,9 +202,9 @@ def main():
                 print "Syntax: pool-member-remove <pool_name> <ip_address> <port>"
             else:
                 delPoolMember(sys.argv[2], sys.argv[3], sys.argv[4])
-        if (sys.argv[1] == "pool-attach"):
+        if (sys.argv[1] == "virtual-server-attach"):
             if len(sys.argv) < 4:
-                print "Syntax: pool-attach <virtual_server_name> <pool_name>"
+                print "Syntax: virtual-server-attach <virtual_server_name> <pool_name>"
             else:
                 attachPoolToVirtual(sys.argv[2], sys.argv[3])
     else:
@@ -211,7 +213,7 @@ def main():
         print "Virtual Servers:"
         print "virtual-server-list"
         print "virtual-server-create --auto NETWORK_UUID"
-        print "pool-attach VS_NAME POOL_NAME"  
+        print "virtual-server-attach VS_NAME POOL_NAME"  
         print ""
         print "Pools:"
         print "pool-list"
