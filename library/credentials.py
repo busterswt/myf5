@@ -10,7 +10,7 @@ def get_credentials():
         d['tenant_name'] = os.environ['OS_TENANT_NAME']
         return d
     except KeyError, e:
-        print ("Environment variable %s is not set!") % e
+        print ("Openstack environment variable %s is not set!") % e
         sys.exit(1)
 
 def get_nova_credentials():
@@ -22,5 +22,17 @@ def get_nova_credentials():
         d['project_id'] = os.environ['OS_TENANT_NAME']
         return d
     except KeyError, e:
-        print ("Environment variable %s is not set!") % e
+        print ("OpenStack environment variable %s is not set!") % e
+        sys.exit(1)
+
+def get_f5_credentials():
+    d = {}
+    try:
+        d['f5_username'] = os.environ['F5_USERNAME']
+        d['f5_password'] = os.environ['F5_PASSWORD']
+        d['f5_endpoint'] = os.environ['F5_ENDPOINT']
+        d['f5_partition'] = os.environ['F5_PARTITION']
+        return d
+    except KeyError, e:
+        print ("F5 environment variable %s is not set!") % e
         sys.exit(1)
