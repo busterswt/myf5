@@ -206,8 +206,22 @@ def main():
             else:
                 attachPoolToVirtual(sys.argv[2], sys.argv[3])
     else:
-        print "No command specified"
-
+        print "No command specified. Available commands include:"
+        print ""
+        print "Virtual Servers:"
+        print "virtual-server-list"
+        print "virtual-server-create --auto NETWORK_UUID"
+        print "pool-attach VS_NAME POOL_NAME"  
+        print ""
+        print "Pools:"
+        print "pool-list"
+        print "pool-create POOL_NAME LB_METHOD MONITOR"
+        print "pool-delete POOL_NAME"
+        print "pool-stats POOL_NAME"
+        print "pool-member-list POOL_NAME"
+        print "pool-member-add POOL_NAME IP_ADDRESS PORT"
+        print "pool-member-remove POOL_NAME IP_ADDRESS PORT"
+        print ""  
 
 if __name__ == "__main__":
         main()
