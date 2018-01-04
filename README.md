@@ -1,3 +1,8 @@
+myf5 - A python utility to manage F5 Local Traffic Managers using the F5 ReST API
+
+The `master` branch supports F5 LTM v12.x
+The `v11` tag supports F5 LTM v11.5 - v11.x
+
 To use this package, install git and clone the repo:
 
 ```
